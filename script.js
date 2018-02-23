@@ -15,12 +15,12 @@ function onmouseup(/*MouseEvent*/ e){
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 }
+
 var balls = new Array();
 var count = 100; // initial amount of balls
-var size = 100;
-var G = 1000; // interaction constant
+var size = 10;
+var G = 5; // interaction constant
 var elasticCoef = 1;
-
 var dt = 0.005; // evaluation step
 
 function Ball() {
