@@ -17,8 +17,8 @@ function onmouseup(/*MouseEvent*/ e){
 }
 var balls = new Array();
 var count = 100; // initial amount of balls
-var size = 5;
-var G = 5; // interaction constant
+var size = 20;
+var G = 100; // interaction constant
 var elasticCoef = 1;
 
 var dt = 0.005; // evaluation step
