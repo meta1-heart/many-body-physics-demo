@@ -64,7 +64,7 @@ function Draw(){
     context.fillRect(0, 0, WIDTH, HEIGHT);
 
     // draw circles
-    context.fillStyle = "#ffffff";
+    context.fillStyle = "#4286f4";
     for(var i = 0; i < balls.length; i++){
         context.beginPath();
         
