@@ -6,22 +6,22 @@ document.addEventListener("mouseup", onmouseup, true);
 
 function onmouseup(/*MouseEvent*/ e){
     let aBall = new Ball();
-    aBall.r = (Math.random() + 1) * size;
+    aBall.r = 2 * size;
     aBall.x = e.clientX + aBall.r;
     aBall.y = e.clientY + aBall.r;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 100 - 50;
-    aBall.vy = Math.random() * 100 - 50;
+    aBall.vx = 5000;//Math.random() * 100 - 50;
+    aBall.vy = 0;//Math.random() * 100 - 50;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 }
 
 var balls = new Array();
-var count = 100; // initial amount of balls
-var size = 10;
-var G = 5; // interaction constant
-var elasticCoef = 1;
-var dt = 0.005; // evaluation step
+var count = 150; // initial amount of balls
+var size = 5;
+var G = 7.5; // interaction constant
+var elasticCoef = 0.75;
+var dt = 0.01; // evaluation step
 
 function Ball() {
     this.x = 0;
