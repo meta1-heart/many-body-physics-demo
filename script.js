@@ -2,9 +2,30 @@ var canvas, context;
 var HEIGHT = window.innerHeight, WIDTH = window.innerWidth;
 
 document.addEventListener("DOMContentLoaded", main, true);
-document.addEventListener("mouseup", onmouseup, true);
+document.addEventListener("mousedown", onmousedown, true);
+document.addEventListener("keydown", onkeydown, true);
 
-function onmouseup(/*MouseEvent*/ e){
+var balls = new Array();
+var count = 50; // initial amount of balls
+var size = 4;
+var G = 7.5; // interaction constant
+var elasticCoef = 0.75;
+var dt = 0.01; // evaluation step (10 ms)
+var g = 0; // F = mg
+var isStarted = false;
+
+var aBall;
+for(var i = 0; i < count; i++){ // initial scene
+    aBall = new Ball();
+    aBall.x = Math.random() * WIDTH;
+    aBall.y = Math.random() * HEIGHT;
+    aBall.r = (Math.random() + 1) * size;
+    aBall.m = aBall.r * aBall.r * aBall.r;
+    aBall.im = 1 / aBall.m;
+    balls.push(aBall);
+}
+
+function onmousedown(/*MouseEvent*/ e){
     let aBall = new Ball();
     aBall.r = 2 * size;
     aBall.x = e.clientX + aBall.r;
@@ -14,14 +35,81 @@ function onmouseup(/*MouseEvent*/ e){
     aBall.vy = 0;//Math.random() * 100 - 50;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
+
 }
 
-var balls = new Array();
-var count = 150; // initial amount of balls
-var size = 5;
-var G = 7.5; // interaction constant
-var elasticCoef = 0.75;
-var dt = 0.01; // evaluation step
+function onkeydown(/*KeyDownEvent*/ e) {
+    if (e.keyCode == 71) { // G
+        g = g > 0 ? 0 : 0.5; 
+    }
+    if (e.keyCode == 32) { // Spacebar
+        if (isStarted == false) {
+            let timer = setInterval(addBallStart, 20);
+            setTimeout(function() {
+                clearInterval(timer);
+            }, 5000);
+            isStarted = true;
+        } else {
+            let timer = setInterval(addBallStart, 20);
+            setTimeout(function() {
+                clearInterval(timer);
+            }, 500);
+        }
+    }
+    if (e.keyCode == 70) { // F
+        balls.forEach(FreezeSpeed); 
+    }
+    if (e.keyCode == 82) { // R
+        balls.forEach(ReverseSpeed); 
+    }
+    if (e.keyCode == 87) { // W
+        balls.forEach(AddSpeedW); 
+    }
+    if (e.keyCode == 65) { // A
+        balls.forEach(AddSpeedA); 
+    }
+    if (e.keyCode == 83) { // S
+        balls.forEach(AddSpeedS); 
+    }
+    if (e.keyCode == 68) { // D
+        balls.forEach(AddSpeedD); 
+    }
+}
+
+function FreezeSpeed(obj) {
+    obj.vx = 0;
+    obj.vy = 0;
+}
+
+function ReverseSpeed(obj) {
+    obj.vx *= -1;
+    obj.vy *= -1;
+}
+
+function AddSpeedW(obj) {
+    obj.vy -= 50;
+}
+function AddSpeedA(obj) {
+    obj.vx -= 50;
+}
+function AddSpeedS(obj) {
+    obj.vy += 50;
+}
+function AddSpeedD(obj) {
+    obj.vx += 50;
+}
+
+function addBallStart(e) {
+    aBall = new Ball();
+    aBall.r = (Math.random() + 1) * size;
+    aBall.x = WIDTH * 0.5 + aBall.r;
+    aBall.y = HEIGHT + aBall.r;
+    aBall.m = aBall.r * aBall.r * aBall.r;
+    aBall.vx = Math.random() * 250 - 125;
+    aBall.vy = Math.random() * 500;
+    aBall.im = 1 / aBall.m;
+    balls.push(aBall);
+}
 
 function Ball() {
     this.x = 0;
@@ -31,17 +119,6 @@ function Ball() {
     this.r = 0;
     this.m = 0;
     this.im = 0; 
-}
-
-var aBall;
-for(var i = 0; i < count; i++){
-    aBall = new Ball();
-    aBall.x = Math.random() * WIDTH;
-    aBall.y = Math.random() * HEIGHT;
-    aBall.r = (Math.random() + 1) * size;
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
 }
 
 function main(){
@@ -107,7 +184,7 @@ function Step(){
             ay = a * dy / r; // a * sin
             
             balls[i].vx += ax * dt;
-            balls[i].vy += ay * dt;
+            balls[i].vy += (ay + g) * dt;
         }
     
     // change coords
