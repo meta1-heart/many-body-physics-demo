@@ -15,7 +15,7 @@ var g = 0; // F = mg
 var isStarted = false;
 
 var aBall;
-for(var i = 0; i < count; i++){ // initial scene
+for(let i = 0; i < count; i++){ // initial scene
     aBall = new Ball();
     aBall.x = Math.random() * WIDTH;
     aBall.y = Math.random() * HEIGHT;
@@ -27,12 +27,17 @@ for(var i = 0; i < count; i++){ // initial scene
 
 function onmousedown(/*MouseEvent*/ e){
     let aBall = new Ball();
-    aBall.r = 2 * size;
+    aBall.r = (Math.random() + 1) * size;
     aBall.x = e.clientX + aBall.r;
     aBall.y = e.clientY + aBall.r;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = 5000;//Math.random() * 100 - 50;
-    aBall.vy = 0;//Math.random() * 100 - 50;
+    if (isStarted) {
+        aBall.vx = 5000;
+        aBall.vy = 0;
+    } else {
+        aBall.vx = Math.random() * 500 - 250;
+        aBall.vy = Math.random() * 500 - 250;
+    }
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 
@@ -40,7 +45,7 @@ function onmousedown(/*MouseEvent*/ e){
 
 function onkeydown(/*KeyDownEvent*/ e) {
     if (e.keyCode == 71) { // G
-        g = g > 0 ? 0 : 0.5; 
+        g = g > 0 ? 0 : 98; 
     }
     if (e.keyCode == 32) { // Spacebar
         if (isStarted == false) {
@@ -53,7 +58,7 @@ function onkeydown(/*KeyDownEvent*/ e) {
             let timer = setInterval(addBallStart, 20);
             setTimeout(function() {
                 clearInterval(timer);
-            }, 500);
+            }, 1000);
         }
     }
     if (e.keyCode == 70) { // F
@@ -79,6 +84,14 @@ function onkeydown(/*KeyDownEvent*/ e) {
     }
     if (e.keyCode == 81) { // Q
         balls.forEach(DecSpeed); 
+    }
+    if (e.keyCode == 67) { // C
+        balls = []; // Clear All
+        isStarted = false;
+    }
+    if (e.keyCode == 88) { // X
+        balls = balls.slice(balls.length/2); //Clear Half
+        isStarted = false;
     }
 }
 
@@ -178,8 +191,8 @@ function Step(){
     let a, ax, ay, dx, dy, r;
     
     // interaction
-    for(var i = 0; i < balls.length; i++)
-        for(var j = 0; j < balls.length; j++)
+    for(let i = 0; i < balls.length; i++)
+        for(let j = 0; j < balls.length; j++)
         {
             if(i == j) continue;
             dx = balls[j].x - balls[j].r - balls[i].x + balls[i].r;
@@ -200,13 +213,14 @@ function Step(){
             ay = a * dy / r; // a * sin
             
             balls[i].vx += ax * dt;
-            balls[i].vy += (ay + g) * dt;
+            balls[i].vy += ay * dt;
         }
     
     // change coords
-    for(var i = 0; i < balls.length; i++){
+    for(let i = 0; i < balls.length; i++){
         balls[i].x += balls[i].vx * dt;
         balls[i].y += balls[i].vy * dt;
+        balls[i].vy += g * dt;
         checkBoundaries.call(balls[i]);
     }
     
@@ -215,19 +229,19 @@ function Step(){
 
 function checkBoundaries() {
     if (this.x - 2 * this.r < 0) {
-        this.vx = - this.vx;
+        this.vx = - 0.75 * this.vx;
         this.x = 2 * this.r;
     }
     if (this.x > WIDTH) {
-        this.vx = - this.vx;
+        this.vx = - 0.75 * this.vx;
         this.x = WIDTH;
     }
     if (this.y - 2 * this.r < 0) {
-        this.vy = - this.vy;
+        this.vy = - 0.75 * this.vy;
         this.y = 2 * this.r;
     }
     if (this.y > HEIGHT) {
-        this.vy = - this.vy;
+        this.vy = - 0.75 * this.vy;
         this.y = HEIGHT;
     }
 }
