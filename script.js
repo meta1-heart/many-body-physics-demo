@@ -74,6 +74,12 @@ function onkeydown(/*KeyDownEvent*/ e) {
     if (e.keyCode == 68) { // D
         balls.forEach(AddSpeedD); 
     }
+    if (e.keyCode == 69) { // E
+        balls.forEach(IncSpeed); 
+    }
+    if (e.keyCode == 81) { // Q
+        balls.forEach(DecSpeed); 
+    }
 }
 
 function FreezeSpeed(obj) {
@@ -109,6 +115,16 @@ function addBallStart(e) {
     aBall.vy = Math.random() * 500;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
+}
+
+function IncSpeed(obj) {
+    obj.vx *= 1.25;
+    obj.vy *= 1.25;
+}
+
+function DecSpeed(obj) {
+    obj.vx *= 0.75;
+    obj.vy *= 0.75;
 }
 
 function Ball() {
