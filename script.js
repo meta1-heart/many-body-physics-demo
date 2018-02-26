@@ -31,7 +31,7 @@ function onmousedown(/*MouseEvent*/ e){
     aBall.x = e.clientX + aBall.r;
     aBall.y = e.clientY + aBall.r;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    if (isStarted) {
+    if (balls.length >= 200) {
         aBall.vx = 5000;
         aBall.vy = 0;
     } else {
@@ -45,21 +45,13 @@ function onmousedown(/*MouseEvent*/ e){
 
 function onkeydown(/*KeyDownEvent*/ e) {
     if (e.keyCode == 71) { // G
-        g = g > 0 ? 0 : 98; 
+        g = g > 0 ? 0 : 250; 
     }
     if (e.keyCode == 32) { // Spacebar
-        if (isStarted == false) {
-            let timer = setInterval(addBallStart, 20);
+            let timer = setInterval(addBallStart, 10);
             setTimeout(function() {
                 clearInterval(timer);
-            }, 5000);
-            isStarted = true;
-        } else {
-            let timer = setInterval(addBallStart, 20);
-            setTimeout(function() {
-                clearInterval(timer);
-            }, 1000);
-        }
+            }, 1500);
     }
     if (e.keyCode == 70) { // F
         balls.forEach(FreezeSpeed); 
@@ -93,6 +85,12 @@ function onkeydown(/*KeyDownEvent*/ e) {
         balls = balls.slice(balls.length/2); //Clear Half
         isStarted = false;
     }
+    if (e.keyCode == 84) { // T
+        let timer = setInterval(AddStream, 5);
+            setTimeout(function() {
+                clearInterval(timer);
+            }, 2000 );
+    }
 }
 
 function FreezeSpeed(obj) {
@@ -121,12 +119,35 @@ function AddSpeedD(obj) {
 function addBallStart(e) {
     aBall = new Ball();
     aBall.r = (Math.random() + 1) * size;
-    rand = Math.random() - 0.5;
-    aBall.x =  0.5 * WIDTH + 10 * rand + aBall.r;
-    aBall.y = HEIGHT + aBall.r;
+    rand = Math.random();
+    if (rand < 0.25) {
+        aBall.x = Math.random() * WIDTH;
+        aBall.y = aBall.r + 0.1;
+    } else if (rand < 0.5) {
+        aBall.x = aBall.r + 0.1;
+        aBall.y = Math.random() * HEIGHT;
+    } else if (rand < 0.75) {
+        aBall.x = WIDTH - aBall.r - 0.1;
+        aBall.y = Math.random() * HEIGHT;
+    } else {
+        aBall.x = Math.random() * WIDTH;
+        aBall.y = HEIGHT - aBall.r - 0.1;
+    }
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 250 - 125;
-    aBall.vy = Math.random() * 500;
+    aBall.vx = Math.random() * 500 - 250;
+    aBall.vy = Math.random() * 500 - 250;
+    aBall.im = 1 / aBall.m;
+    balls.push(aBall);
+}
+
+function AddStream() {
+    aBall = new Ball();
+    aBall.r = (Math.random() + 1) * size;
+    aBall.x = WIDTH - aBall.r;
+    aBall.y = 0.25 * HEIGHT + (2* Math.random() - 1) * HEIGHT * 0.1;
+    aBall.m = aBall.r * aBall.r * aBall.r;
+    aBall.vx = -500;
+    aBall.vy = 0;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 }
