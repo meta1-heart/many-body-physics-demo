@@ -6,7 +6,7 @@ document.addEventListener("mousedown", onmousedown, true);
 document.addEventListener("keydown", onkeydown, true);
 
 var balls = new Array();
-var count = 50; // initial amount of balls
+var count = 51; // initial amount of balls
 var size = WIDTH/341.5;
 var G = 7.5; // interaction constant
 var elasticCoef = 0.75;
