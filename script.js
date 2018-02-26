@@ -121,7 +121,8 @@ function AddSpeedD(obj) {
 function addBallStart(e) {
     aBall = new Ball();
     aBall.r = (Math.random() + 1) * size;
-    aBall.x = WIDTH * 0.5 + aBall.r;
+    rand = Math.random() - 0.5;
+    aBall.x =  0.5 * WIDTH + 10 * rand + aBall.r;
     aBall.y = HEIGHT + aBall.r;
     aBall.m = aBall.r * aBall.r * aBall.r;
     aBall.vx = Math.random() * 250 - 125;
