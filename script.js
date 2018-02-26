@@ -87,16 +87,16 @@ function ReverseSpeed(obj) {
 }
 
 function AddSpeedW(obj) {
-    obj.vy -= 50;
+    obj.vy -= 400 / obj.r;
 }
 function AddSpeedA(obj) {
-    obj.vx -= 50;
+    obj.vx -= 400 / obj.r;
 }
 function AddSpeedS(obj) {
-    obj.vy += 50;
+    obj.vy += 400 / obj.r;
 }
 function AddSpeedD(obj) {
-    obj.vx += 50;
+    obj.vx += 400 / obj.r;
 }
 
 function addBallStart(e) {
