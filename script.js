@@ -8,7 +8,7 @@ document.addEventListener("keydown", onkeydown, true);
 var balls = new Array();
 var count = 51; // initial amount of balls
 var size = WIDTH/341.5;
-var G = 7.5; // interaction constant
+var G = 15; // interaction constant
 var elasticCoef = 0.75;
 var dt = 0.01; // evaluation step (10 ms)
 var g = 0; // F = mg
@@ -226,9 +226,9 @@ function Step(){
             r = Math.sqrt(r); // R
 
             // collision\
-            let d = balls[j].r + balls[i].r;
-            if (r < d) {
-                solveCollision(balls[i], balls[j], d);
+            let summR = balls[j].r + balls[i].r;
+            if (r < summR) {
+                solveCollision(balls[i], balls[j], summR);
             };
 
             ax = a * dx / r; // a * cos
@@ -252,29 +252,29 @@ function Step(){
 function checkBoundaries() {
     if (this.x - 2 * this.r < 0) {
         this.vx = - 0.75 * this.vx;
-        this.x = 2 * this.r;
+        this.x = 2 * this.r + 0.1;
     }
     if (this.x > WIDTH) {
         this.vx = - 0.75 * this.vx;
-        this.x = WIDTH;
+        this.x = WIDTH - 0.1;
     }
     if (this.y - 2 * this.r < 0) {
         this.vy = - 0.75 * this.vy;
-        this.y = 2 * this.r;
+        this.y = 2 * this.r + 0.1;
     }
     if (this.y > HEIGHT) {
         this.vy = - 0.75 * this.vy;
-        this.y = HEIGHT;
+        this.y = HEIGHT - 0.1;
     }
 }
 
-function solveCollision(ball_1, ball_2, d) {
+function solveCollision(ball_1, ball_2, summR) {
 
     let normalX = ball_2.x - ball_1.x;
     let normalY = ball_2.y - ball_1.y;
     let normalizingCoef = Math.sqrt( normalX*normalX + normalY*normalY );
 
-    let penetration = (d - normalizingCoef)/2;
+    let penetration = summR - normalizingCoef;
 
     normalX /= normalizingCoef;
     normalY /= normalizingCoef;
