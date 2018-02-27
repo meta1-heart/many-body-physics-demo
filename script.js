@@ -1,9 +1,10 @@
+
 var canvas, context;
 var HEIGHT = window.innerHeight, WIDTH = window.innerWidth;
 
 document.addEventListener("DOMContentLoaded", main, true);
-document.addEventListener("mousedown", onmousedown, true);
-document.addEventListener("keydown", onkeydown, true);
+document.addEventListener("mousedown", onMouseDown, true);
+document.addEventListener("keydown", onKeyDown, true);
 
 var balls = new Array();
 var count = 51; // initial amount of balls
@@ -12,11 +13,20 @@ var G = 15; // interaction constant
 var elasticCoef = 0.75;
 var dt = 0.01; // evaluation step (10 ms)
 var g = 0; // F = mg
-var isStarted = false;
 
-var aBall;
-for(let i = 0; i < count; i++){ // initial scene
-    aBall = new Ball();
+function Ball() {
+    this.x = 0;
+    this.y = 0;
+    this.vx = 0;
+    this.vy = 0;
+    this.r = 0;
+    this.m = 0;
+    this.im = 0; 
+}
+
+// initial scene
+for(let i = 0; i < count; i++) { 
+    let aBall = new Ball();
     aBall.x = Math.random() * WIDTH;
     aBall.y = Math.random() * HEIGHT;
     aBall.r = (Math.random() + 1) * size;
@@ -25,7 +35,7 @@ for(let i = 0; i < count; i++){ // initial scene
     balls.push(aBall);
 }
 
-function onmousedown(/*MouseEvent*/ e){
+function onMouseDown(/*MouseEvent*/ e){
     let aBall = new Ball();
     aBall.r = (Math.random() + 1) * size;
     aBall.x = e.clientX + aBall.r;
@@ -40,15 +50,14 @@ function onmousedown(/*MouseEvent*/ e){
     }
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
-
 }
 
-function onkeydown(/*KeyDownEvent*/ e) {
+function onKeyDown(/*KeyDownEvent*/ e) {
     if (e.keyCode == 71) { // G
         g = g > 0 ? 0 : 250; 
     }
     if (e.keyCode == 32) { // Spacebar
-            let timer = setInterval(addBallStart, 10);
+            let timer = setInterval(addBalls, 10);
             setTimeout(function() {
                 clearInterval(timer);
             }, 1500);
@@ -79,11 +88,9 @@ function onkeydown(/*KeyDownEvent*/ e) {
     }
     if (e.keyCode == 67) { // C
         balls = []; // Clear All
-        isStarted = false;
     }
     if (e.keyCode == 88) { // X
         balls = balls.slice(balls.length/2); //Clear Half
-        isStarted = false;
     }
     if (e.keyCode == 84) { // T
         let timer = setInterval(AddStream, 5);
@@ -93,31 +100,8 @@ function onkeydown(/*KeyDownEvent*/ e) {
     }
 }
 
-function FreezeSpeed(obj) {
-    obj.vx = 0;
-    obj.vy = 0;
-}
-
-function ReverseSpeed(obj) {
-    obj.vx *= -1;
-    obj.vy *= -1;
-}
-
-function AddSpeedW(obj) {
-    obj.vy -= 400 / obj.r;
-}
-function AddSpeedA(obj) {
-    obj.vx -= 400 / obj.r;
-}
-function AddSpeedS(obj) {
-    obj.vy += 400 / obj.r;
-}
-function AddSpeedD(obj) {
-    obj.vx += 400 / obj.r;
-}
-
-function addBallStart(e) {
-    aBall = new Ball();
+function addBalls(e) {
+    let aBall = new Ball();
     aBall.r = (Math.random() + 1) * size;
     rand = Math.random();
     if (rand < 0.25) {
@@ -141,7 +125,7 @@ function addBallStart(e) {
 }
 
 function AddStream() {
-    aBall = new Ball();
+    let aBall = new Ball();
     aBall.r = (Math.random() + 1) * size;
     aBall.x = WIDTH - aBall.r;
     aBall.y = 0.25 * HEIGHT + (2* Math.random() - 1) * HEIGHT * 0.1;
@@ -152,6 +136,32 @@ function AddStream() {
     balls.push(aBall);
 }
 
+function FreezeSpeed(obj) {
+    obj.vx = 0;
+    obj.vy = 0;
+}
+
+function ReverseSpeed(obj) {
+    obj.vx *= -1;
+    obj.vy *= -1;
+}
+
+function AddSpeedW(obj) {
+    obj.vy -= 400 / obj.r;
+}
+
+function AddSpeedA(obj) {
+    obj.vx -= 400 / obj.r;
+}
+
+function AddSpeedS(obj) {
+    obj.vy += 400 / obj.r;
+}
+
+function AddSpeedD(obj) {
+    obj.vx += 400 / obj.r;
+}
+
 function IncSpeed(obj) {
     obj.vx *= 1.25;
     obj.vy *= 1.25;
@@ -160,16 +170,6 @@ function IncSpeed(obj) {
 function DecSpeed(obj) {
     obj.vx *= 0.75;
     obj.vy *= 0.75;
-}
-
-function Ball() {
-    this.x = 0;
-    this.y = 0;
-    this.vx = 0;
-    this.vy = 0;
-    this.r = 0;
-    this.m = 0;
-    this.im = 0; 
 }
 
 function main(){
@@ -184,29 +184,6 @@ function main(){
         context = canvas.getContext("2d");
 
         timer = setInterval(Step, dt * 1000);
-}
-
-function Draw(){
-    // clear screen
-    context.fillStyle = "#000000";
-    context.fillRect(0, 0, WIDTH, HEIGHT);
-
-    // draw circles
-    context.fillStyle = "#4286f4";
-    for(var i = 0; i < balls.length; i++){
-        context.beginPath();
-        
-        context.arc(
-            balls[i].x - balls[i].r,
-            balls[i].y - balls[i].r,
-            balls[i].r,
-            0,
-            Math.PI * 2
-        );
-        
-        context.closePath();
-        context.fill();
-    }
 }
 
 function Step(){
@@ -249,25 +226,6 @@ function Step(){
     Draw();
 }
 
-function checkBoundaries() {
-    if (this.x - 2 * this.r < 0) {
-        this.vx = - 0.75 * this.vx;
-        this.x = 2 * this.r + 0.1;
-    }
-    if (this.x > WIDTH) {
-        this.vx = - 0.75 * this.vx;
-        this.x = WIDTH - 0.1;
-    }
-    if (this.y - 2 * this.r < 0) {
-        this.vy = - 0.75 * this.vy;
-        this.y = 2 * this.r + 0.1;
-    }
-    if (this.y > HEIGHT) {
-        this.vy = - 0.75 * this.vy;
-        this.y = HEIGHT - 0.1;
-    }
-}
-
 function solveCollision(ball_1, ball_2, summR) {
 
     let normalX = ball_2.x - ball_1.x;
@@ -279,8 +237,6 @@ function solveCollision(ball_1, ball_2, summR) {
     normalX /= normalizingCoef;
     normalY /= normalizingCoef;
 
-
-    
     let dVx = ball_2.vx - ball_1.vx;  
     let dVy = ball_2.vy - ball_1.vy;
 
@@ -313,5 +269,46 @@ function solveCollision(ball_1, ball_2, summR) {
 
     ball_2.x += ball_2.im * correctionX;
     ball_2.y += ball_2.im * correctionY;
+}
 
+function checkBoundaries() {
+    if (this.x - 2 * this.r < 0) {
+        this.vx = - 0.75 * this.vx;
+        this.x = 2 * this.r + 0.1;
+    }
+    if (this.x > WIDTH) {
+        this.vx = - 0.75 * this.vx;
+        this.x = WIDTH - 0.1;
+    }
+    if (this.y - 2 * this.r < 0) {
+        this.vy = - 0.75 * this.vy;
+        this.y = 2 * this.r + 0.1;
+    }
+    if (this.y > HEIGHT) {
+        this.vy = - 0.75 * this.vy;
+        this.y = HEIGHT - 0.1;
+    }
+}
+
+function Draw(){
+    // clear screen
+    context.fillStyle = "#000000";
+    context.fillRect(0, 0, WIDTH, HEIGHT);
+
+    // draw circles
+    context.fillStyle = "#4286f4";
+    for(var i = 0; i < balls.length; i++){
+        context.beginPath();
+        
+        context.arc(
+            balls[i].x - balls[i].r,
+            balls[i].y - balls[i].r,
+            balls[i].r,
+            0,
+            Math.PI * 2
+        );
+        
+        context.closePath();
+        context.fill();
+    }
 }
