@@ -8,10 +8,10 @@ document.addEventListener("keydown", onKeyDown, true);
 
 var balls = new Array();
 var count = 51; // initial amount of balls
-var size = WIDTH/341.5;
-var G = 15; // interaction constant
+var size = (WIDTH - 320)/341.5;
+var G = 7.5; // interaction constant
 var elasticCoef = 0.75;
-var dt = 0.01; // evaluation step (10 ms)
+var dt = 0.0166666666666667; // evaluation step (16 ms equal to 60 Hz)
 var g = 0; // F = mg
 
 function Ball() {
@@ -22,17 +22,6 @@ function Ball() {
     this.r = 0;
     this.m = 0;
     this.im = 0; 
-}
-
-// initial scene
-for(let i = 0; i < count; i++) { 
-    let aBall = new Ball();
-    aBall.x = Math.random() * WIDTH;
-    aBall.y = Math.random() * HEIGHT;
-    aBall.r = (Math.random() + 1) * size;
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
 }
 
 function onMouseDown(/*MouseEvent*/ e){
@@ -130,7 +119,7 @@ function AddStream() {
     aBall.x = WIDTH - aBall.r;
     aBall.y = 0.25 * HEIGHT + (2* Math.random() - 1) * HEIGHT * 0.1;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = -500;
+    aBall.vx = -300;
     aBall.vy = 0;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
@@ -175,14 +164,21 @@ function DecSpeed(obj) {
 function main(){
         canvas = document.createElement('canvas');
         canvas.height = HEIGHT;
-        canvas.width = WIDTH;
+        canvas.width = WIDTH - help.clientWidth - 20;
+        WIDTH = canvas.width;
         canvas.id = 'canvas';
-        canvas.style.position = 'absolute';
-        canvas.style.top = '0';
-        canvas.style.left = '0';
         document.body.appendChild(canvas);
         context = canvas.getContext("2d");
-
+        // initial scene
+        for(let i = 0; i < count; i++) { 
+            let aBall = new Ball();
+            aBall.x = Math.random() * WIDTH;
+            aBall.y = Math.random() * HEIGHT;
+            aBall.r = (Math.random() + 1) * size;
+            aBall.m = aBall.r * aBall.r * aBall.r;
+            aBall.im = 1 / aBall.m;
+            balls.push(aBall);
+        }
         timer = setInterval(Step, dt * 1000);
 }
 
