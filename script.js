@@ -12,7 +12,7 @@ var dt = 0.001; // evaluation step 1 ms
 var g = 0; // F = mg
 var isStarted = false;
 var isPaused = false;
-var anim, timer;
+var anim, timerSpace, timerT, timerAnimation;
 var fps = 60;
 
 function main() {
@@ -24,7 +24,7 @@ function main() {
     update();
     draw();
     //anim = requestAnimationFrame(main);
-    timer = setTimeout(function() {
+    timerAnimation = setTimeout(function() {
         anim = requestAnimationFrame(main);
     }, 1000 / fps);
 }
@@ -199,9 +199,9 @@ function onKeyDown(/*KeyDownEvent*/ e) {
             g = g > 0 ? 0 : 50000;
             break;
         case 32: // Spacebar
-            timer = setInterval(addBalls, 10);
+            timerSpace = setInterval(addBalls, 10);
             setTimeout(function() {
-                clearInterval(timer);
+                clearInterval(timerSpace);
             }, 1500);
             break;
         case 70: // F
@@ -235,9 +235,9 @@ function onKeyDown(/*KeyDownEvent*/ e) {
             balls = balls.slice(balls.length/2);
             break;
         case 84: // T
-            timer = setInterval(addStream, 10);
+            timerT = setInterval(addStream, 10);
             setTimeout(function() {
-                clearInterval(timer);
+                clearInterval(timerT);
             }, 2500 );
             break;
         case 80: // P
@@ -248,7 +248,7 @@ function onKeyDown(/*KeyDownEvent*/ e) {
 
 function pause() {
     if (!isPaused) {
-        clearTimeout(timer);
+        clearTimeout(timerAnimation);
         isPaused = true;
     } else {
         main();
