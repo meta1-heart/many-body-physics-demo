@@ -24,7 +24,7 @@ function main() {
     update();
     draw();
     //anim = requestAnimationFrame(main);
-    setTimeout(function() {
+    timer = setTimeout(function() {
         anim = requestAnimationFrame(main);
     }, 1000 / fps);
 }
@@ -248,7 +248,7 @@ function onKeyDown(/*KeyDownEvent*/ e) {
 
 function pause() {
     if (!isPaused) {
-        cancelAnimationFrame(anim);
+        clearTimeout(timer);
         isPaused = true;
     } else {
         main();
