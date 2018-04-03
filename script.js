@@ -13,6 +13,7 @@ var g = 0; // F = mg
 var isStarted = false;
 var isPaused = false;
 var anim, timer;
+var fps = 60;
 
 function main() {
     if (!isStarted) {
@@ -22,7 +23,10 @@ function main() {
     }
     update();
     draw();
-    anim = requestAnimationFrame(main);
+    //anim = requestAnimationFrame(main);
+    setTimeout(function() {
+        anim = requestAnimationFrame(main);
+    }, 1000 / fps);
 }
 
 function prepareCanvas() {
