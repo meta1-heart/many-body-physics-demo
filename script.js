@@ -6,12 +6,14 @@ var HEIGHT = window.innerHeight, WIDTH = window.innerWidth;
 var balls = new Array();
 var initialCount = 51; // initial amount of balls
 var size = WIDTH / 400;
-var G = 750; // interaction constant
+var G = 10; // interaction constant
 var elasticCoef = 0.75;
-var dt = 0.001; // evaluation step 1 ms 
+var dt = 0.01; // evaluation step 10 ms 
 var g = 0; // F = mg
 var isStarted = false;
 var isPaused = false;
+var isStreaming = false;
+var isAdding = false;
 var anim, timerSpace, timerT, timerAnimation;
 var fps = 100;
 
@@ -23,10 +25,10 @@ function main() {
     }
     update();
     draw();
-    //anim = requestAnimationFrame(main);
-    timerAnimation = setTimeout(function() {
+    anim = requestAnimationFrame(main);
+    /*timerAnimation = setTimeout(function() {
         anim = requestAnimationFrame(main);
-    }, 1000 / fps);
+    }, 1000 / fps);*/
 }
 
 function prepareCanvas() {
@@ -100,8 +102,8 @@ function update() {
 }
 
 function solveCollision(ball_1, ball_2, summR) {
-    let normalX = ball_2.x - ball_1.x;
-    let normalY = ball_2.y - ball_1.y;
+    let normalX = ball_2.x - ball_2.r - ball_1.x + ball_1.r;
+    let normalY = ball_2.y - ball_2.r - ball_1.y + ball_1.r;
     let normalizingCoef = Math.sqrt( normalX*normalX + normalY*normalY );
 
     let penetration = summR - normalizingCoef;
@@ -188,21 +190,25 @@ function onMouseDown(/*MouseEvent*/ e){
     aBall.x = e.clientX + aBall.r;
     aBall.y = e.clientY + aBall.r;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 5000 - 2500;
-    aBall.vy = Math.random() * 5000 - 2500;
+    aBall.vx = Math.random() * 500 - 250;
+    aBall.vy = Math.random() * 500 - 250;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 }
 function onKeyDown(/*KeyDownEvent*/ e) {
     switch (e.keyCode) {
         case 71: // G
-            g = g > 0 ? 0 : 50000;
+            g = g > 0 ? 0 : 500;
             break;
         case 32: // Spacebar
-            timerSpace = setInterval(addBalls, 10);
-            setTimeout(function() {
-                clearInterval(timerSpace);
-            }, 1500);
+            if (!isAdding) {
+                isAdding = true;
+                timerSpace = setInterval(addBalls, 10);
+                setTimeout(function() {
+                    clearInterval(timerSpace);
+                    isAdding = false;
+                }, 1500);
+            }
             break;
         case 70: // F
             balls.forEach(freezeSpeed);
@@ -235,10 +241,14 @@ function onKeyDown(/*KeyDownEvent*/ e) {
             balls = balls.slice(balls.length/2);
             break;
         case 84: // T
-            timerT = setInterval(addStream, 10);
-            setTimeout(function() {
-                clearInterval(timerT);
-            }, 2500 );
+            if (!isStreaming) {
+                isStreaming = true;
+                timerT = setInterval(addStream, 10);
+                setTimeout(function() {
+                    clearInterval(timerT);
+                    isStreaming = false;
+                }, 2500 );
+            }
             break;
         case 80: // P
             pause();
@@ -274,8 +284,8 @@ function addBalls(e) {
         aBall.y = HEIGHT - aBall.r - 0.1;
     }
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 5000 - 2500;
-    aBall.vy = Math.random() * 5000 - 2500;
+    aBall.vx = Math.random() * 500 - 250;
+    aBall.vy = Math.random() * 500 - 250;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
 }
@@ -286,7 +296,7 @@ function addStream() {
     aBall.x = WIDTH - aBall.r;
     aBall.y = 0.25 * HEIGHT + (2* Math.random() - 1) * HEIGHT * 0.1;
     aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = -5000;
+    aBall.vx = -500;
     aBall.vy = 0;
     aBall.im = 1 / aBall.m;
     balls.push(aBall);
@@ -319,8 +329,8 @@ function addSpeedD(obj) {
 }
 
 function incSpeed(obj) {
-    obj.vx *= 1.25;
-    obj.vy *= 1.25;
+    obj.vx *= 1.05;
+    obj.vy *= 1.05;
 }
 
 function decSpeed(obj) {
