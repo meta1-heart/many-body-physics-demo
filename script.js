@@ -13,7 +13,7 @@ var g = 0; // F = mg
 var isStarted = false;
 var isPaused = false;
 var anim, timerSpace, timerT, timerAnimation;
-var fps = 60;
+var fps = 100;
 
 function main() {
     if (!isStarted) {
