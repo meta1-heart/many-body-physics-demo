@@ -258,7 +258,7 @@ function onKeyDown(/*KeyDownEvent*/ e) {
 
 function pause() {
     if (!isPaused) {
-        clearTimeout(timerAnimation);
+        cancelAnimationFrame(anim);
         isPaused = true;
     } else {
         main();
