@@ -1,339 +1,244 @@
-document.addEventListener("DOMContentLoaded", main);
-document.addEventListener("mousedown", onMouseDown);
-document.addEventListener("keydown", onKeyDown);
 var canvas, context;
 var HEIGHT = window.innerHeight, WIDTH = window.innerWidth;
-var balls = new Array();
-var initialCount = 51; // initial amount of balls
-var size = WIDTH / 400;
-var G = 10; // interaction constant
-var elasticCoef = 0.75;
-var dt = 0.01; // evaluation step 10 ms 
-var g = 0; // F = mg
-var isStarted = false;
+const PI =  Math.PI;
+const gamma = 2.2;
+
+var circle;
+var speed = 0, fakeSpeed = 0;
+var speedThreshold = 0.7;
+var x = WIDTH * 0.5;
+var y = HEIGHT * 0.5;
+var r = 250;
+var rotationLength = 0;
+var dt = 1;
+var mixing = {alpha:0.5};
+
 var isPaused = false;
-var isStreaming = false;
-var isAdding = false;
-var anim, timerSpace, timerT, timerAnimation;
-var fps = 100;
 
-function main() {
-    if (!isStarted) {
-        prepareCanvas();
-        makeScene();
-        isStarted = true;
+var anim;
+
+class Circle 
+{
+    constructor( segments )
+    {
+        this.segments = segments;
+        this.color1 =  "#BE0000";
+        this.color2 =  "#00BE00";
+        this.color3 =  "#0000BE";
+        this.updateColors = function() {
+            this.colors =  [this.color1, this.color2, this.color3];
+        };
     }
-    update();
-    draw();
-    anim = requestAnimationFrame(main);
-    /*timerAnimation = setTimeout(function() {
-        anim = requestAnimationFrame(main);
-    }, 1000 / fps);*/
+    
 }
 
-function prepareCanvas() {
-    canvas = document.createElement('canvas');
-    canvas.height = HEIGHT;
-    canvas.width = WIDTH - help.clientWidth - 20;
-    WIDTH = canvas.width;
-    canvas.id = 'canvas';
-    document.body.appendChild(canvas);
-    context = canvas.getContext("2d");
-}
+document.addEventListener( "keydown", onKeyDown );
+document.addEventListener( "DOMContentLoaded", start );
 
-function makeScene() {
-    for (let i = 0; i < initialCount; i++) {
-        createBall();
+function onKeyDown( /*KeyDownEvent*/ e ) 
+{
+
+    if ( e.keyCode == 69 ) 
+    { // E
+        addSpeed();
     }
-}
-
-function createBall() {
-    let aBall = new Ball();
-    aBall.x = Math.random() * WIDTH;
-    aBall.y = Math.random() * HEIGHT;
-    aBall.r = (Math.random() + 1) * size;
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
-}
-
-function Ball() {
-    this.x = 0;
-    this.y = 0;
-    this.vx = 0;
-    this.vy = 0;
-    this.r = 0;
-    this.m = 0;
-    this.im = 0; 
-}
-
-function update() {
-    let a, ax, ay, dx, dy, r;
-    // interaction each to each
-    for(let i = 0; i < balls.length; i++) {
-        for(let j = 0; j < balls.length; j++) {
-            if(i == j) continue;
-            dx = balls[j].x - balls[j].r - balls[i].x + balls[i].r;
-            dy = balls[j].y - balls[j].r - balls[i].y + balls[i].r;
-
-            r = dx * dx + dy * dy;//  R^2
-            a = G * balls[j].m / r;
-            r = Math.sqrt(r); // R
-
-            let summR = balls[j].r + balls[i].r;
-            if (r < summR) {
-                solveCollision(balls[i], balls[j], summR);
-            };
-
-            ax = a * dx / r; // a * cos
-            ay = a * dy / r; // a * sin
-            
-            balls[i].vx += ax * dt;
-            balls[i].vy += ay * dt;
-        }
+    if ( e.keyCode == 81 )
+    { // Q
+        decSpeed();
     }
-    // update coords
-    for(let i = 0; i < balls.length; i++) {
-        balls[i].x += balls[i].vx * dt;
-        balls[i].y += balls[i].vy * dt;
-        balls[i].vy += g * dt;
-        checkBoundaries.call(balls[i]);
+    if ( e.keyCode == 80 ) 
+    { // P
+        pause();
     }
 }
 
-function solveCollision(ball_1, ball_2, summR) {
-    let normalX = ball_2.x - ball_2.r - ball_1.x + ball_1.r;
-    let normalY = ball_2.y - ball_2.r - ball_1.y + ball_1.r;
-    let normalizingCoef = Math.sqrt( normalX*normalX + normalY*normalY );
-
-    let penetration = summR - normalizingCoef;
-
-    normalX /= normalizingCoef;
-    normalY /= normalizingCoef;
-
-    let dVx = ball_2.vx - ball_1.vx;  
-    let dVy = ball_2.vy - ball_1.vy;
-
-    let dotProduct = dVx * normalX + dVy * normalY;
-    if (dotProduct > 0) {
-
-        return;
-    }
-    // impulse
-    let P = - ( 1 + elasticCoef ) * dotProduct;
-    P /= ball_1.im + ball_2.im;
-
-    let impulseX = P * normalX;
-    let impulseY = P * normalY;
-
-    ball_1.vx -= ball_1.im * impulseX;
-    ball_1.vy -= ball_1.im * impulseY;
-
-    ball_2.vx += ball_2.im * impulseX;
-    ball_2.vy += ball_2.im * impulseY;
-
-    // possition correction
-    let correctionPercent = 0.2;
-    let slop = 0.01;
-    let correctionX = Math.max(penetration - slop, 0)/(ball_1.im + ball_2.im) * correctionPercent * normalX;
-    let correctionY = Math.max(penetration - slop, 0)/(ball_1.im + ball_2.im) * correctionPercent * normalY;
-
-    ball_1.x -= ball_1.im * correctionX;
-    ball_1.y -= ball_1.im * correctionY; 
-
-    ball_2.x += ball_2.im * correctionX;
-    ball_2.y += ball_2.im * correctionY;
-}
-
-function checkBoundaries() {
-    if (this.x - 2 * this.r < 0) {
-        this.vx = - 0.75 * this.vx;
-        this.x = 2 * this.r + 0.1;
-    }
-    if (this.x > WIDTH) {
-        this.vx = - 0.75 * this.vx;
-        this.x = WIDTH - 0.1;
-    }
-    if (this.y - 2 * this.r < 0) {
-        this.vy = - 0.75 * this.vy;
-        this.y = 2 * this.r + 0.1;
-    }
-    if (this.y > HEIGHT) {
-        this.vy = - 0.75 * this.vy;
-        this.y = HEIGHT - 0.1;
-    }
-}
-
-function draw() {
-    // clear screen
-    context.fillStyle = "#000000";
-    context.fillRect(0, 0, WIDTH, HEIGHT);
-    // draw circles
-    for (let i = 0; i < balls.length; i++) {
-        context.beginPath();
-        context.arc(
-            balls[i].x - balls[i].r,
-            balls[i].y - balls[i].r,
-            balls[i].r,
-            0,
-            Math.PI * 2
-        );
-        context.closePath();
-        context.fillStyle = "#4286f4";
-        context.fill();
-    }
-}
-// input
-function onMouseDown(/*MouseEvent*/ e){
-    let aBall = new Ball();
-    aBall.r = (Math.random() + 1) * size;
-    aBall.x = e.clientX + aBall.r;
-    aBall.y = e.clientY + aBall.r;
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 500 - 250;
-    aBall.vy = Math.random() * 500 - 250;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
-}
-function onKeyDown(/*KeyDownEvent*/ e) {
-    switch (e.keyCode) {
-        case 71: // G
-            g = g > 0 ? 0 : 500;
-            break;
-        case 32: // Spacebar
-            if (!isAdding) {
-                isAdding = true;
-                timerSpace = setInterval(addBalls, 10);
-                setTimeout(function() {
-                    clearInterval(timerSpace);
-                    isAdding = false;
-                }, 1500);
-            }
-            break;
-        case 70: // F
-            balls.forEach(freezeSpeed);
-            break;
-        case 82: // R
-            balls.forEach(reverseSpeed); 
-            break;
-        case 87: // W
-            balls.forEach(addSpeedW);
-            break;
-        case 65: // A
-            balls.forEach(addSpeedA);
-            break;
-        case 83: // S
-            balls.forEach(addSpeedS);
-            break;
-        case 68: // D
-            balls.forEach(addSpeedD);
-            break;
-        case 69: // E
-            balls.forEach(incSpeed);
-            break;
-        case 81: // Q
-            balls.forEach(decSpeed);
-            break;
-        case 67: // C
-            balls = [];
-            break;
-        case 88: // X
-            balls = balls.slice(balls.length/2);
-            break;
-        case 84: // T
-            if (!isStreaming) {
-                isStreaming = true;
-                timerT = setInterval(addStream, 10);
-                setTimeout(function() {
-                    clearInterval(timerT);
-                    isStreaming = false;
-                }, 2500 );
-            }
-            break;
-        case 80: // P
-            pause();
-            break;
-    }
-}
-
-function pause() {
-    if (!isPaused) {
-        cancelAnimationFrame(anim);
+function pause() 
+{
+    if ( !isPaused ) 
+    {
+        cancelAnimationFrame( anim );
         isPaused = true;
-    } else {
+    }
+    else
+    {
         main();
         isPaused = false;
     }
 }
 
-function addBalls(e) {
-    let aBall = new Ball();
-    aBall.r = (Math.random() + 1) * size;
-    rand = Math.random();
-    if (rand < 0.25) {
-        aBall.x = Math.random() * WIDTH;
-        aBall.y = aBall.r + 0.1;
-    } else if (rand < 0.5) {
-        aBall.x = aBall.r + 0.1;
-        aBall.y = Math.random() * HEIGHT;
-    } else if (rand < 0.75) {
-        aBall.x = WIDTH - aBall.r - 0.1;
-        aBall.y = Math.random() * HEIGHT;
-    } else {
-        aBall.x = Math.random() * WIDTH;
-        aBall.y = HEIGHT - aBall.r - 0.1;
+function addSpeed() 
+{
+    if ( speed > speedThreshold )
+    {
+        if( fakeSpeed < 1.05) fakeSpeed += 0.01;
+        return;
     }
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = Math.random() * 500 - 250;
-    aBall.vy = Math.random() * 500 - 250;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
+    else 
+    {
+        speed += 0.01;
+        fakeSpeed = speed;
+    }
 }
 
-function addStream() {
-    let aBall = new Ball();
-    aBall.r = (Math.random() + 1) * size;
-    aBall.x = WIDTH - aBall.r;
-    aBall.y = 0.25 * HEIGHT + (2* Math.random() - 1) * HEIGHT * 0.1;
-    aBall.m = aBall.r * aBall.r * aBall.r;
-    aBall.vx = -500;
-    aBall.vy = 0;
-    aBall.im = 1 / aBall.m;
-    balls.push(aBall);
+function decSpeed() 
+{
+    if ( fakeSpeed > speedThreshold )
+    {
+        fakeSpeed -= 0.01;
+        return;
+    }
+    else
+    {
+        speed -= 0.01;
+        speed = Math.max( speed, 0 );
+        fakeSpeed = speed;
+    }
 }
 
-function freezeSpeed(obj) {
-    obj.vx = 0;
-    obj.vy = 0;
+function start()
+{
+    prepareCanvas();
+    circle = new Circle(3);
+    setupGui(); 
+    main();
 }
 
-function reverseSpeed(obj) {
-    obj.vx *= -1;
-    obj.vy *= -1;
+function main() 
+{
+    circle.updateColors();
+    Update();
+    Draw();
+    anim = requestAnimationFrame( main );
 }
 
-function addSpeedW(obj) {
-    obj.vy -= 400 / obj.r;
+function prepareCanvas()
+ {
+    canvas = document.createElement( 'canvas' );
+    canvas.height = HEIGHT;
+    canvas.width = WIDTH;
+    document.body.appendChild( canvas );
+    context = canvas.getContext( "2d" );
 }
 
-function addSpeedA(obj) {
-    obj.vx -= 400 / obj.r;
+function setupGui()
+ {
+    var gui = new dat.GUI();
+    /*gui.add( circle, 'segments', 3, 99 )
+        .name( "Segment amount" )
+        .step( 3 );*/
+    gui.addColor( circle, 'color1' ) ;
+    gui.addColor( circle, 'color2' );
+    gui.addColor( circle, 'color3' );
 }
 
-function addSpeedS(obj) {
-    obj.vy += 400 / obj.r;
+function Update() 
+{
+    rotationLength += speed * dt;   
 }
 
-function addSpeedD(obj) {
-    obj.vx += 400 / obj.r;
+function Draw() 
+{
+    // clear screen
+    context.fillStyle = "#E0E0E0";
+    context.fillRect( 0, 0, WIDTH, HEIGHT );
+
+    // circles
+    for ( let i = 0; i < circle.segments; i++ ) 
+    {
+        let startAngle = i * 2 * PI / circle.segments + rotationLength;
+        let endAngle = ( i + 1 ) * 2 * PI / circle.segments + rotationLength;
+        let j = i % 3;
+        context.beginPath();
+
+        context.fillStyle = circle.colors[j];
+        context.strokeStyle = circle.colors[j];
+
+        context.moveTo( x, y );
+        context.arc( x, y, r, startAngle, endAngle );
+        context.stroke();
+        context.fill();
+
+        context.closePath();
+    }
+    context.fillStyle = "#000000";
+    context.font = "40px Arial bold";
+    context.fillText( "norm rotation speed " + Math.round( speed * 100 ), WIDTH * 0.1, HEIGHT * 0.1  );
+    context.fillText( "fake rotation speed " + Math.round( fakeSpeed * 100 ), WIDTH * 0.1, HEIGHT * 0.2 );
+    context.fillText( "Use P to PAUSE", WIDTH * 0.1, HEIGHT * 0.4 );
+    context.fillText( "E - Boost", WIDTH * 0.1, HEIGHT * 0.5 );
+    context.fillText( "Q - Slow", WIDTH * 0.1, HEIGHT * 0.6 );
+    //
+    for ( let i = 0; i < 3; i++ )
+    {
+        drawMixedSegments( rotationLength + i * 2 * PI / 3, circle, i );
+    }
 }
 
-function incSpeed(obj) {
-    obj.vx *= 1.05;
-    obj.vy *= 1.05;
+function drawMixedSegments( rotationLength, circle, num )
+{
+    let startAngle = rotationLength - 0.01;
+    let endAngle = startAngle + 2 * fakeSpeed;
+    let partsAmount = 100;
+    let deltaAngle = ( endAngle - startAngle ) / partsAmount;
+
+    let rgbColorFirst = HEX2RGB( circle.colors[( ( num + 2 ) % 3)] );
+    let rgbColorLast = HEX2RGB( circle.colors[num] );
+    let deltaColor = [0, 0, 0];
+    //
+    for ( let i = 0; i < 3; i++ )
+    {
+        deltaColor[i] = ( rgbColorLast[i] - rgbColorFirst[i] ) / partsAmount;
+    }
+    //
+    for ( let i = 0; i < partsAmount; i++ )
+    {
+        let newColor = [0, 0, 0];
+        for (let j = 0; j < 3; j++)
+        {
+            newColor[j] = rgbColorFirst[j] + i * deltaColor[j]; 
+        }
+
+        context.beginPath();
+        context.fillStyle = RGB2HEX( newColor );
+        context.strokeStyle = RGB2HEX( newColor );
+    
+        context.moveTo(x, y);
+        context.arc( x, y, r, startAngle + deltaAngle * i, startAngle + deltaAngle * ( i + 1 ) );
+        context.stroke();
+        context.fill();
+        context.closePath();
+    }
 }
 
-function decSpeed(obj) {
-    obj.vx *= 0.75;
-    obj.vy *= 0.75;
+function mixColors( color1, color2, alpha )
+{
+    let rgb1 = HEX2RGB( color1 );
+    let rgb2 = HEX2RGB( color2 );
+    rgbRes = [0, 0, 0];
+    //
+    for ( let i = 0; i < 3; i++ )
+    {
+        rgbRes[i] = ( 1 - alpha ) * rgb1[i] + alpha * rgb2[i];
+    }
+    return RGB2HEX( rgbRes );
+}
+
+function RGB2HEX(rgb)
+{
+    let decimal = rgb[0] << 16 | ( rgb[1] << 8 & 0xFFFF ) | rgb[2];
+    let hex = decimal.toString( 16 );
+    hex = "000000".substring( 0, 6 - hex.length ) + hex;
+    
+    return '#' + hex.toUpperCase();
+}
+
+function HEX2RGB( hex )
+{
+    let decimal = parseInt( hex.substring( 1,7 ), 16 );
+
+    let r = decimal >> 16;
+    let g = ( decimal >> 8 ) & 0xFF;
+    let b = decimal & 0xFF;
+
+    return [r, g, b];
 }
