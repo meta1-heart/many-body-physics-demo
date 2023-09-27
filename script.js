@@ -188,7 +188,7 @@ function draw() {
         );
         context.fill();
         context.closePath();
-        drawBallTail2( x, y, r, balls[i].vx, balls[i].vy );
+       // drawBallTail2( x, y, r, balls[i].vx, balls[i].vy );
     }
 }
 
